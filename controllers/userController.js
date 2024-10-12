@@ -19,8 +19,8 @@ export const getApplicationStats = async (req, res) => {
   res.status(StatusCodes.OK).json({ users, jobs })
 }
 
-/**
- * saving in the memory 
+/** 
+ * saving in the memory
  * formating the buffer into something cloudinary can understand
  */
 export const updateUser = async (req, res) => {
@@ -31,7 +31,7 @@ export const updateUser = async (req, res) => {
   if (req.file) {
     const file = formatImage(req.file)
     // return // cuts the code off for testing only
-    // await fs.unlink(req.file.path) // used for disk storage
+    // await fs.unlink(req.file.path) // used for disk storage req.file.path
     const response = await cloudinary.v2.uploader.upload(file)
     console.log(response)
 

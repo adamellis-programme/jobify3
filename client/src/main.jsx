@@ -7,11 +7,9 @@ import customFetch from './utils/customFetch.js'
 
 import { ToastContainer } from 'react-toastify'
 
-
-
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
+  <>
     <App />
     <ToastContainer position="top-center" />
-  </StrictMode>
+  </>
 )

@@ -6,20 +6,22 @@ import { Form, redirect } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import customFetch from '../utils/customFetch'
 
-export const action = async ({ request }) => {
-  const formData = await request.formData()
-  const data = Object.fromEntries(formData)
-
-  try {
-    await customFetch.post('/jobs', data)
-    toast.success('Job added successfully')
-    return redirect('all-jobs')
-    // return null
-  } catch (error) {
-    toast.error(error?.response?.data?.msg)
-    return error
+export const action =
+  (queryClient) =>
+  async ({ request }) => {
+    const formData = await request.formData()
+    const data = Object.fromEntries(formData)
+    try {
+      await customFetch.post('/jobs', data)
+      // all the queries start with job are invalidated
+      queryClient.invalidateQueries(['jobs'])
+      toast.success('Job added successfully ')
+      return redirect('all-jobs')
+    } catch (error) {
+      toast.error(error?.response?.data?.msg)
+      return error
+    }
   }
-}
 
 const AddJob = () => {
   const { user } = useOutletContext()

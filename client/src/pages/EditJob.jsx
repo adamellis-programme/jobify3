@@ -6,41 +6,57 @@ import { Form, redirect, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import customFetch from '../utils/customFetch'
 import { BsCloudLightning } from 'react-icons/bs'
+import { useQuery } from '@tanstack/react-query'
 
-export const loader = async ({ params }) => {
-  console.log(params)
-  try {
-    const { data } = await customFetch.get(`/jobs/${params.id}`)
-    console.log(data)
-    return data
-  } catch (error) {
-    toast.error(error.response.data.msg)
-    return redirect('/dashboard/all-jobs')
+// as params we uses a func that ret a obj
+const singleJobQuery = (id) => {
+  return {
+    queryKey: ['job', id],
+    queryFn: async () => {
+      const { data } = await customFetch.get(`/jobs/${id}`)
+      return data
+    },
   }
 }
 
-export const action = async ({ request, params }) => {
-  const formData = await request.formData()
-  console.log(formData)
-  const data = Object.fromEntries(formData)
-  console.log(data)
-
-  try {
-    await customFetch.patch(`/jobs/${params.id}`, data)
-    toast.success('Job edited successfully')
-    return redirect('/dashboard/all-jobs')
-  } catch (error) {
-
-    toast.error(error.response.data.msg)
-    return error
+// ... GET
+// prettier-ignore
+export const loader = (queryClient) => async ({ params }) => {
+    try {
+      await queryClient.ensureQueryData(singleJobQuery(params.id))
+      // we stil need to use id in useLoaderData()
+      return params.id
+    } catch (error) {
+      toast.error(error?.response?.data?.msg)
+      return redirect('/dashboard/all-jobs')
+    }
   }
-}
+//queryClient.invalidateQueries(['job', params.id]); 
+// ... POST
+// prettier-ignore
+export const action = (queryClient) => async ({ request, params }) => {
+    const formData = await request.formData()
+    const data = Object.fromEntries(formData)
+    try {
+      await customFetch.patch(`/jobs/${params.id}`, data)
+      queryClient.invalidateQueries(['jobs'])
+      toast.success('Job edited successfully')
+      return redirect('/dashboard/all-jobs')
+    } catch (error) {
+      toast.error(error?.response?.data?.msg)
+      return error
+    }
+  }
 
 const EditJob = () => {
   const params = useParams()
   console.log(params)
-  const { job } = useLoaderData()
-  console.log(job)
+  const id = useLoaderData()
+  console.log(id)
+
+  const {
+    data: { job },
+  } = useQuery(singleJobQuery(id))
 
   return (
     <Wrapper>
